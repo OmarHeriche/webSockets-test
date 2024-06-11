@@ -68,10 +68,15 @@
         <!-- todo form the socket.io docs -->
         <script src="/socket.io/socket.io.js"></script>
         <script>
+            let counter = 0;
+
             const socket = io({
                 auth: {
-                    serverOffset: 0,
+                    serverOffset: 0, // set the serverOffset to 0 it refers to the id of the last message sent by the server to the client before the client disconnected
                 },
+                // enable retries
+                ackTimeout: 10000,
+                retries: 3,
             });
             console.log("socket.auth.serverOffset", socket.auth.serverOffset);
 
@@ -82,7 +87,9 @@
             form.addEventListener("submit", (e) => {
                 e.preventDefault();
                 if (input.value) {
-                    socket.emit("chat message", input.value); // send the input.value to the server from the current single client
+                    // compute a unique offset
+                    const clientOffset = `${socket.id}-${counter++}`;
+                    socket.emit("chat message", input.value, clientOffset);
                     input.value = "";
                 }
             });
